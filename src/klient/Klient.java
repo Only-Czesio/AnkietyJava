@@ -1,7 +1,7 @@
 package klient;
 
 import common.*;
-
+import klient.widoki.WidokUzytkownikow;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
@@ -26,10 +26,12 @@ public class Klient extends JFrame {
     private DefaultTableModel tableModel;
     private JTable usersTable;
 
+
+
     public Klient() {
         super("Ankiety ONLINE");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setSize(600, 400);
+        setSize(800, 600);
         setLocationRelativeTo(null);
 
         if (!polacz()) {
@@ -41,13 +43,28 @@ public class Klient extends JFrame {
         mainPanel = new JPanel(cardLayout);
 
         mainPanel.add(budujPanelLogowania(), "LOGIN");
-        mainPanel.add(budujPanelAdmina(), "ADMIN_PANEL");
+
+        JPanel adminContainer = new JPanel(new BorderLayout());
+
+        WidokUzytkownikow widokUsers = new WidokUzytkownikow(this);
+
+        JPanel adminTop = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JButton btnWylogujAdmin = new JButton("Wyloguj");
+        btnWylogujAdmin.addActionListener(e -> wyloguj());
+        adminTop.add(new JLabel("Jesteś w panelu Administratora  "));
+        adminTop.add(btnWylogujAdmin);
+
+        adminContainer.add(adminTop, BorderLayout.NORTH);
+        adminContainer.add(widokUsers, BorderLayout.CENTER);
+
+        mainPanel.add(adminContainer, "ADMIN_PANEL");
 
         JPanel userPanel = new JPanel();
-        userPanel.add(new JLabel("Witaj Użytkowniku! (Tu będą ankiety)"));
+        userPanel.add(new JLabel("Witaj Użytkowniku! Tutaj wkrótce pojawią się ankiety."));
         JButton btnWylogujUser = new JButton("Wyloguj");
         btnWylogujUser.addActionListener(e -> wyloguj());
         userPanel.add(btnWylogujUser);
+
         mainPanel.add(userPanel, "USER_PANEL");
 
         add(mainPanel);
@@ -140,24 +157,43 @@ public class Klient extends JFrame {
         return p;
     }
 
-    // --- LOGIKA BIZNESOWA ---
+    public void wyloguj() {
+        loginField.setText("");
+        passField.setText("");
+        // Wracamy do ekranu logowania
+        cardLayout.show(mainPanel, "LOGIN");
+    }
 
     private void akcjaLogowanie() {
         String l = loginField.getText();
         String h = new String(passField.getPassword());
 
         Komunikat req = new Komunikat(TypKomunikatu.LOGIN);
-        req.uzytkownik = new Uzytkownik(l, h, RodzajKonta.UZYTKOWNIK);
+        // Tu wysyłamy pustego użytkownika tylko z loginem i hasłem do sprawdzenia
+        req.uzytkownik = new Uzytkownik(l, h, RodzajKonta.UZYTKOWNIK); // false lub cokolwiek, serwer to zweryfikuje
 
         Komunikat resp = wyslij(req);
+
         if (resp.typ == TypKomunikatu.ODPOWIEDZ_OK) {
+            // Logowanie udane!
             JOptionPane.showMessageDialog(this, "Zalogowano!");
-            if (resp.uzytkownik.rodzajKonta == RodzajKonta.ADMIN) {
-                cardLayout.show(mainPanel, "ADMIN_PANEL");
-                odswiezListeUzytkownikow();
-            } else {
-                cardLayout.show(mainPanel, "USER_PANEL");
-            }
+
+            // Sprawdzamy czy admin na podstawie odpowiedzi z serwera
+            boolean czyAdmin = RodzajKonta.ADMIN.equals(resp.uzytkownik);
+
+            // --- TWORZYMY DASHBOARD DYNAMICZNIE ---
+            // Usuwamy stary panel aplikacji (jeśli istniał), żeby go odświeżyć
+            // (To prosty trik, żeby zresetować widok przy przelogowaniu na innego usera)
+
+            // Tworzymy nowy panel dashboardu przekazując "this" (klienta) i flagę admina
+            PanelDashboard dashboard = new PanelDashboard(this, czyAdmin);
+
+            // Dodajemy go do głównego kontenera pod nazwą "APP"
+            mainPanel.add(dashboard, "APP");
+
+            // Przełączamy widok
+            cardLayout.show(mainPanel, "APP");
+
         } else {
             JOptionPane.showMessageDialog(this, resp.wiadomosc);
         }
@@ -208,12 +244,6 @@ public class Klient extends JFrame {
                 tableModel.addRow(new Object[]{u.login, u.haslo, u.rodzajKonta});
             }
         }
-    }
-
-    private void wyloguj() {
-        loginField.setText("");
-        passField.setText("");
-        cardLayout.show(mainPanel, "LOGIN");
     }
 
     private Komunikat wyslij(Komunikat k) {
