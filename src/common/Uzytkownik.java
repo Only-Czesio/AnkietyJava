@@ -6,16 +6,17 @@ public class Uzytkownik implements Serializable {
 
     public String login;
     public String haslo;
-    public boolean czyAdmin;
+    public RodzajKonta rodzajKonta;
+    public boolean zalogowany = false;
 
-    public Uzytkownik(String login, String haslo, boolean czyAdmin) {
+    public Uzytkownik(String login, String haslo, RodzajKonta rodzajKonta) {
         this.login = login;
         this.haslo = haslo;
-        this.czyAdmin = czyAdmin;
+        this.rodzajKonta = rodzajKonta;
     }
 
     @Override
     public String toString() {
-        return login + " (" + (czyAdmin ? "ADMIN" : "USER") + ")";
+        return login + " (" + rodzajKonta + ")";
     }
 }

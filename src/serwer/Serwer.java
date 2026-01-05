@@ -11,7 +11,6 @@ public class Serwer {
     private static final int PORT = 5000;
     private static final String PLIK_BAZY = "baza_danych.dat";
 
-    // Główna lista użytkowników w pamięci
     private static List<Uzytkownik> listaUzytkownikow = new ArrayList<>();
 
     public static void main(String[] args) {
@@ -28,13 +27,11 @@ public class Serwer {
         }
     }
 
-    // --- Metody obsługi bazy (Pliku) ---
-
     private static synchronized void wczytajBazeZPliku() {
         File plik = new File(PLIK_BAZY);
         if (!plik.exists()) {
             System.out.println("SERWER: Brak pliku bazy. Tworzę domyślnego admina.");
-            listaUzytkownikow.add(new Uzytkownik("admin", "admin", true));
+            listaUzytkownikow.add(new Uzytkownik("admin", "admin", RodzajKonta.ADMIN));
             zapiszBazeDoPliku();
             return;
         }
@@ -56,8 +53,6 @@ public class Serwer {
         }
     }
 
-    // --- Logika sieciowa ---
-
     private static void obslugaKlienta(Socket socket) {
         try (ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
              ObjectInputStream in = new ObjectInputStream(socket.getInputStream())) {
@@ -71,7 +66,7 @@ public class Serwer {
                         Uzytkownik znaleziony = znajdzUzytkownika(req.uzytkownik.login);
                         if (znaleziony != null && znaleziony.haslo.equals(req.uzytkownik.haslo)) {
                             resp.wiadomosc = "Zalogowano";
-                            resp.uzytkownik = znaleziony; // Odsyłamy info o roli (admin czy nie)
+                            znaleziony.zalogowany = true;
                         } else {
                             resp.typ = TypKomunikatu.ODPOWIEDZ_BLAD;
                             resp.wiadomosc = "Błędny login lub hasło";
@@ -83,8 +78,7 @@ public class Serwer {
                             resp.typ = TypKomunikatu.ODPOWIEDZ_BLAD;
                             resp.wiadomosc = "Taki login jest już zajęty!";
                         } else {
-                            // Domyślnie rejestracja tworzy zwykłego usera (false)
-                            req.uzytkownik.czyAdmin = false;
+                            req.uzytkownik.rodzajKonta = RodzajKonta.UZYTKOWNIK;
                             listaUzytkownikow.add(req.uzytkownik);
                             zapiszBazeDoPliku();
                             resp.wiadomosc = "Konto utworzone.";
@@ -92,12 +86,10 @@ public class Serwer {
                         break;
 
                     case POBIERZ_UZYTKOWNIKOW:
-                        // Wysyłamy całą listę do admina
                         resp.listaUzytkownikow = new ArrayList<>(listaUzytkownikow);
                         break;
 
                     case USUN_UZYTKOWNIKA:
-                        // Usuwamy po loginie
                         boolean usunieto = listaUzytkownikow.removeIf(u -> u.login.equals(req.uzytkownik.login));
                         if (usunieto) {
                             zapiszBazeDoPliku();
@@ -112,7 +104,7 @@ public class Serwer {
                         Uzytkownik doEdycji = znajdzUzytkownika(req.uzytkownik.login);
                         if (doEdycji != null) {
                             doEdycji.haslo = req.uzytkownik.haslo;
-                            doEdycji.czyAdmin = req.uzytkownik.czyAdmin;
+                            doEdycji.rodzajKonta = req.uzytkownik.rodzajKonta;
                             zapiszBazeDoPliku();
                             resp.wiadomosc = "Zaktualizowano dane.";
                         } else {
@@ -126,7 +118,7 @@ public class Serwer {
                 out.flush();
             }
         } catch (Exception e) {
-            // Klient rozłączony
+            e.printStackTrace();
         }
     }
 

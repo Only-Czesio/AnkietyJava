@@ -19,16 +19,15 @@ public class Klient extends JFrame {
     private JPanel mainPanel;
     private CardLayout cardLayout;
 
-    // Pola logowania
     private JTextField loginField;
     private JPasswordField passField;
 
-    // Elementy panelu admina
+
     private DefaultTableModel tableModel;
     private JTable usersTable;
 
     public Klient() {
-        super("System Ankiet");
+        super("Ankiety ONLINE");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setSize(600, 400);
         setLocationRelativeTo(null);
@@ -44,7 +43,6 @@ public class Klient extends JFrame {
         mainPanel.add(budujPanelLogowania(), "LOGIN");
         mainPanel.add(budujPanelAdmina(), "ADMIN_PANEL");
 
-        // Panel usera na razie pusty (placeholder)
         JPanel userPanel = new JPanel();
         userPanel.add(new JLabel("Witaj Użytkowniku! (Tu będą ankiety)"));
         JButton btnWylogujUser = new JButton("Wyloguj");
@@ -126,14 +124,13 @@ public class Klient extends JFrame {
             if(row == -1) return;
             String login = (String) tableModel.getValueAt(row, 0);
 
-            // Nie pozwól usunąć samego siebie (opcjonalne, ale mądre)
             if(login.equals(loginField.getText())) {
                 JOptionPane.showMessageDialog(this, "Nie możesz usunąć siebie!");
                 return;
             }
 
             Komunikat req = new Komunikat(TypKomunikatu.USUN_UZYTKOWNIKA);
-            req.uzytkownik = new Uzytkownik(login, "", false);
+            req.uzytkownik = new Uzytkownik(login, "", RodzajKonta.UZYTKOWNIK);
             wyslij(req);
             odswiezListeUzytkownikow();
         });
@@ -150,12 +147,12 @@ public class Klient extends JFrame {
         String h = new String(passField.getPassword());
 
         Komunikat req = new Komunikat(TypKomunikatu.LOGIN);
-        req.uzytkownik = new Uzytkownik(l, h, false);
+        req.uzytkownik = new Uzytkownik(l, h, RodzajKonta.UZYTKOWNIK);
 
         Komunikat resp = wyslij(req);
         if (resp.typ == TypKomunikatu.ODPOWIEDZ_OK) {
             JOptionPane.showMessageDialog(this, "Zalogowano!");
-            if (resp.uzytkownik.czyAdmin) {
+            if (resp.uzytkownik.rodzajKonta == RodzajKonta.ADMIN) {
                 cardLayout.show(mainPanel, "ADMIN_PANEL");
                 odswiezListeUzytkownikow();
             } else {
@@ -172,7 +169,7 @@ public class Klient extends JFrame {
         if(l.isEmpty() || h.isEmpty()) return;
 
         Komunikat req = new Komunikat(TypKomunikatu.REJESTRACJA);
-        req.uzytkownik = new Uzytkownik(l, h, false);
+        req.uzytkownik = new Uzytkownik(l, h, RodzajKonta.UZYTKOWNIK);
 
         Komunikat resp = wyslij(req);
         JOptionPane.showMessageDialog(this, resp.wiadomosc);
@@ -187,7 +184,7 @@ public class Klient extends JFrame {
 
         String login = (String) tableModel.getValueAt(row, 0);
         String stareHaslo = (String) tableModel.getValueAt(row, 1);
-        boolean czyAdmin = tableModel.getValueAt(row, 2).toString().equals("true");
+        boolean czyAdmin = tableModel.getValueAt(row, 2).equals(RodzajKonta.ADMIN);
 
         // Proste okienko edycji
         JTextField passEdit = new JTextField(stareHaslo);
@@ -197,7 +194,7 @@ public class Klient extends JFrame {
         int result = JOptionPane.showConfirmDialog(this, msg, "Edycja " + login, JOptionPane.OK_CANCEL_OPTION);
         if (result == JOptionPane.OK_OPTION) {
             Komunikat req = new Komunikat(TypKomunikatu.EDYTUJ_UZYTKOWNIKA);
-            req.uzytkownik = new Uzytkownik(login, passEdit.getText(), adminCheck.isSelected());
+            req.uzytkownik = new Uzytkownik(login, passEdit.getText(), czyAdmin ? RodzajKonta.ADMIN : RodzajKonta.UZYTKOWNIK);
             wyslij(req);
             odswiezListeUzytkownikow();
         }
@@ -208,7 +205,7 @@ public class Klient extends JFrame {
         if (resp.listaUzytkownikow != null) {
             tableModel.setRowCount(0); // Wyczyść tabelę
             for (Uzytkownik u : resp.listaUzytkownikow) {
-                tableModel.addRow(new Object[]{u.login, u.haslo, u.czyAdmin});
+                tableModel.addRow(new Object[]{u.login, u.haslo, u.rodzajKonta});
             }
         }
     }
