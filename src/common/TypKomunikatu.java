@@ -1,0 +1,11 @@
+package common;
+
+public enum TypKomunikatu {
+    LOGIN,
+    REJESTRACJA,
+    POBIERZ_UZYTKOWNIKOW,
+    USUN_UZYTKOWNIKA,
+    EDYTUJ_UZYTKOWNIKA,
+    ODPOWIEDZ_OK,
+    ODPOWIEDZ_BLAD
+}
