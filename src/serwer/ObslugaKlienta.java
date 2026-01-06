@@ -42,6 +42,7 @@ public class ObslugaKlienta implements Runnable {
                 if (u != null) {
                     resp.wiadomosc = "Zalogowano pomyślnie";
                     resp.uzytkownik = u;
+                    resp.uzytkownik.setZalogowany(true);
                 } else {
                     resp.typ = TypKomunikatu.ODPOWIEDZ_BLAD;
                     resp.wiadomosc = "Błędny login lub hasło";
@@ -52,7 +53,6 @@ public class ObslugaKlienta implements Runnable {
                 if (baza.znajdzUzytkownika(req.uzytkownik.getLogin()) == null) {
                     req.uzytkownik.setRodzajKonta(RodzajKonta.UZYTKOWNIK);
                     baza.dodajUzytkownika(req.uzytkownik);
-
                     resp.wiadomosc = "Konto zostało utworzone";
                 } else {
                     resp.typ = TypKomunikatu.ODPOWIEDZ_BLAD;

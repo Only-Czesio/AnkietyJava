@@ -18,5 +18,5 @@ public class Pytanie implements Serializable {
 
     public String getTrescPytania() { return trescPytania; }
     public List<String> getOpcjeOdpowiedzi() { return opcjeOdpowiedzi; }
-    public boolean isWielokrotnyWybor() { return wielokrotnyWybor; }
+    public boolean czyWielokrotnyWybor() { return wielokrotnyWybor; }
 }

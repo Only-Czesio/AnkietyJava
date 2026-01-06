@@ -21,7 +21,7 @@ public class OknoAnkiety extends JDialog {
             Pytanie p = szablon.getPytania().get(i);
             add(new JLabel(p.getTrescPytania()));
             final int nrPytania = i;
-            if (p.isWielokrotnyWybor()) {
+            if (p.czyWielokrotnyWybor()) {
                 for (int j = 0; j < p.getOpcjeOdpowiedzi().size(); j++) {
                     final int nrOpcji = j;
                     JCheckBox cb = new JCheckBox(p.getOpcjeOdpowiedzi().get(j));
