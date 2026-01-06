@@ -16,7 +16,6 @@ public class Serwer {
                 Socket clientSocket = serverSocket.accept();
                 System.out.println("Nowe połączenie: " + clientSocket.getInetAddress());
 
-                // Uruchomienie obsługi w nowym wątku
                 new Thread(new ObslugaKlienta(clientSocket, baza)).start();
             }
         } catch (IOException e) {
