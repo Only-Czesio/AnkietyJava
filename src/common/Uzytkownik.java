@@ -15,6 +15,38 @@ public class Uzytkownik implements Serializable {
         this.rodzajKonta = rodzajKonta;
     }
 
+    public String getLogin() {
+        return login;
+    }
+
+    public void setLogin(String login) {
+        this.login = login;
+    }
+
+    public boolean isZalogowany() {
+        return zalogowany;
+    }
+
+    public void setZalogowany(boolean zalogowany) {
+        this.zalogowany = zalogowany;
+    }
+
+    public String getHaslo() {
+        return haslo;
+    }
+
+    public void setHaslo(String haslo) {
+        this.haslo = haslo;
+    }
+
+    public RodzajKonta getRodzajKonta() {
+        return rodzajKonta;
+    }
+
+    public void setRodzajKonta(RodzajKonta rodzajKonta) {
+        this.rodzajKonta = rodzajKonta;
+    }
+
     @Override
     public String toString() {
         return login + " (" + rodzajKonta + ")";

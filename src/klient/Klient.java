@@ -179,7 +179,7 @@ public class Klient extends JFrame {
             JOptionPane.showMessageDialog(this, "Zalogowano!");
 
             // Sprawdzamy czy admin na podstawie odpowiedzi z serwera
-            boolean czyAdmin = RodzajKonta.ADMIN.equals(resp.uzytkownik);
+            boolean czyAdmin = resp.uzytkownik.rodzajKonta.equals(RodzajKonta.ADMIN);
 
             // --- TWORZYMY DASHBOARD DYNAMICZNIE ---
             // Usuwamy stary panel aplikacji (jeśli istniał), żeby go odświeżyć
@@ -246,7 +246,7 @@ public class Klient extends JFrame {
         }
     }
 
-    private Komunikat wyslij(Komunikat k) {
+    public Komunikat wyslij(Komunikat k) {
         try {
             out.writeObject(k);
             out.flush();

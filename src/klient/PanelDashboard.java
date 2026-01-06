@@ -58,10 +58,16 @@ public class PanelDashboard extends JPanel {
             panelTresci.add(widokUserow, "UZYTKOWNICY");
         }
 
-        // -- C. Widok Ankiet (Placeholder na razie) --
-        JPanel ankietyPanel = new JPanel();
-        ankietyPanel.add(new JLabel("Tu będzie lista ankiet (WidokAnkiet)"));
-        panelTresci.add(ankietyPanel, "ANKIETY");
+        if (czyAdmin) {
+
+            WidokSzablonow widokSzablonow = new WidokSzablonow(klient);
+            panelTresci.add(widokSzablonow, "ANKIETY");
+        } else {
+
+            JPanel widokDlaUsera = new JPanel();
+            widokDlaUsera.add(new JLabel("Lista ankiet do wypełnienia - wkrótce!"));
+            panelTresci.add(widokDlaUsera, "ANKIETY");
+        }
 
         // -- D. Widok Raportów (Placeholder) --
         JPanel raportyPanel = new JPanel();

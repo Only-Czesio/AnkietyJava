@@ -4,14 +4,14 @@ import java.io.Serializable;
 import java.util.List;
 
 public class Pytanie implements Serializable {
-    private String tresc;
-    private List<String> mozliweOdpowiedzi;
+    private String trescPytania;
+    private List<String> opcjeOdpowiedzi;
 
-    public Pytanie(String tresc, List<String> mozliweOdpowiedzi) {
-        this.tresc = tresc;
-        this.mozliweOdpowiedzi = mozliweOdpowiedzi;
+    public Pytanie(String trescPytania, List<String> opcjeOdpowiedzi) {
+        this.trescPytania = trescPytania;
+        this.opcjeOdpowiedzi = opcjeOdpowiedzi;
     }
 
-    public String getTresc() { return tresc; }
-    public List<String> getMozliweOdpowiedzi() { return mozliweOdpowiedzi; }
+    public String getTrescPytania() { return trescPytania; }
+    public List<String> getOpcjeOdpowiedzi() { return opcjeOdpowiedzi; }
 }

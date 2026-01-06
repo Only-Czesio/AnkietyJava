@@ -17,7 +17,8 @@ public class BazaDanych {
     private synchronized void wczytajBazeZPliku() {
         File plik = new File(PLIK_BAZY);
         if (!plik.exists()) {
-            listaUzytkownikow.add(new Uzytkownik("admin", "password", RodzajKonta.ADMIN));
+            String zahashowaneHasloAdmina = Bezpieczenstwo.hashujHaslo("password");
+            listaUzytkownikow.add(new Uzytkownik("admin", zahashowaneHasloAdmina, RodzajKonta.ADMIN));
             zapiszBazeDoPliku();
             return;
         }
@@ -40,13 +41,50 @@ public class BazaDanych {
         }
     }
 
+    public synchronized Uzytkownik autentykuj(String login, String hasloNiezaszyfrowane) {
+        Uzytkownik uzytkownik = znajdzUzytkownika(login);
+
+        if (uzytkownik != null) {
+            // Porównujemy podane hasło (tekst) z hashem zapisanym w obiekcie
+            if (Bezpieczenstwo.sprawdzHaslo(hasloNiezaszyfrowane, uzytkownik.getHaslo())) {
+                return uzytkownik; // Sukces
+            }
+        }
+        return null; // Błąd logowania
+    }
+
     public synchronized List<Uzytkownik> getListaUzytkownikow() {
         return new ArrayList<>(listaUzytkownikow);
     }
 
+    // Dodawanie użytkownika
     public synchronized void dodajUzytkownika(Uzytkownik u) {
+        // Hashujemy hasło przed zapisem!
+        String zahashowane = Bezpieczenstwo.hashujHaslo(u.getHaslo());
+        u.setHaslo(zahashowane);
+
         listaUzytkownikow.add(u);
         zapiszBazeDoPliku();
+    }
+
+    // Edytowanie użytkownika
+    public synchronized boolean edytujUzytkownika(Uzytkownik dane) {
+        for (int i = 0; i < listaUzytkownikow.size(); i++) {
+            Uzytkownik u = listaUzytkownikow.get(i);
+            if (u.getLogin().equals(dane.getLogin())) {
+                // Aktualizujemy rolę
+                u.setRodzajKonta(dane.getRodzajKonta());
+
+                // Jeśli admin wpisał nowe hasło w oknie edycji, hashujemy je i nadpisujemy
+                if (dane.getHaslo() != null && !dane.getHaslo().isEmpty()) {
+                    u.setHaslo(Bezpieczenstwo.hashujHaslo(dane.getHaslo()));
+                }
+
+                zapiszBazeDoPliku();
+                return true;
+            }
+        }
+        return false;
     }
 
     public synchronized boolean usunUzytkownika(String login) {
@@ -67,6 +105,19 @@ public class BazaDanych {
         zapiszBazeDoPliku();
     }
 
+    public synchronized boolean usunSzablon(String id) {
+        boolean usunieto = listaSzablonow.removeIf(s -> s.getId().equals(id));
+
+        if (usunieto) {
+            zapiszBazeDoPliku();
+        }
+        return usunieto;
+    }
+
+    public synchronized List<SzablonAnkiety> getListaSzablonow() {
+        return new ArrayList<>(listaSzablonow);
+    }
+
     public synchronized void dodajWynik(Ankieta w) {
         listaWynikow.add(w);
         zapiszBazeDoPliku();
@@ -79,3 +130,4 @@ public class BazaDanych {
                 .orElse(null);
     }
 }
+
