@@ -47,9 +47,12 @@ public abstract class WidokBazowy extends JPanel {
     }
 
     protected abstract void odswiezDane();
-    protected abstract void akcjaDodaj();
+    protected void akcjaDodaj() {}
     protected abstract void akcjaEdytuj();
     protected abstract void akcjaUsun();
+    public JButton getBtnDodaj() { return btnDodaj; }
+    public JButton getBtnEdytuj() { return btnEdytuj; }
+    public JButton getBtnUsun() { return btnUsun; }
 
     protected String pobierzZaznaczoneId() {
         int row = tabela.getSelectedRow();

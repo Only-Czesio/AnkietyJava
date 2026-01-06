@@ -59,16 +59,35 @@ public class KreatorAnkietyDialog extends JDialog {
     }
 
     private void dodajPytanieDialog() {
-        String tresc = JOptionPane.showInputDialog(this, "Treść pytania:");
-        if (tresc == null || tresc.isEmpty()) return;
+        JTextField trescField = new JTextField();
+        JTextField opcjeField = new JTextField("Tak,Nie,Nie wiem");
+        JCheckBox wielokrotnyCheck = new JCheckBox("Wielokrotny wybór?");
 
-        String odpStr = JOptionPane.showInputDialog(this, "Opcje odpowiedzi (rozdzielone przecinkiem):", "Tak,Nie,Nie wiem");
-        if (odpStr == null) return;
+        Object[] inputFields = {
+                "Treść pytania:", trescField,
+                "Opcje (rozdzielone przecinkiem):", opcjeField,
+                "", wielokrotnyCheck
+        };
 
-        List<String> opcje = Arrays.asList(odpStr.split(","));
-        Pytanie p = new Pytanie(tresc, opcje);
-        listaPytan.add(p);
-        pytaniaModel.addElement(tresc + " (" + opcje.size() + " odp)");
+        int result = JOptionPane.showConfirmDialog(this, inputFields, "Dodaj pytanie", JOptionPane.OK_CANCEL_OPTION);
+
+        if (result == JOptionPane.OK_OPTION) {
+            String tresc = trescField.getText();
+            String odpStr = opcjeField.getText();
+            boolean isMulti = wielokrotnyCheck.isSelected();
+
+            if (tresc.isEmpty() || odpStr.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Wszystkie pola muszą być wypełnione!");
+                return;
+            }
+
+            List<String> opcje = Arrays.asList(odpStr.split(","));
+            Pytanie p = new Pytanie(tresc, opcje, isMulti);
+
+            listaPytan.add(p);
+            String typStr = isMulti ? "[Wielo]" : "[Jedno]";
+            pytaniaModel.addElement(typStr + " " + tresc + " (" + opcje.size() + " odp)");
+        }
     }
 
     public boolean isZatwierdzono() { return zatwierdzono; }

@@ -8,7 +8,7 @@ public class BazaDanych {
     private static final String PLIK_BAZY = "baza_danych.dat";
     private List<Uzytkownik> listaUzytkownikow = new ArrayList<>();
     private List<SzablonAnkiety> listaSzablonow = new ArrayList<>();
-    private List<Ankieta> listaWynikow = new ArrayList<>();
+    private List<Ankieta> listaAnkiet = new ArrayList<>();
 
     public BazaDanych() {
         wczytajBazeZPliku();
@@ -24,7 +24,7 @@ public class BazaDanych {
         }
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(plik))) {
             listaUzytkownikow = (List<Uzytkownik>) ois.readObject();
-            listaWynikow = (List<Ankieta>) ois.readObject();
+            listaAnkiet = (List<Ankieta>) ois.readObject();
             listaSzablonow = (List<SzablonAnkiety>) ois.readObject();
         } catch (Exception e) {
             System.err.println("Błąd wczytywania: " + e.getMessage());
@@ -34,7 +34,7 @@ public class BazaDanych {
     public synchronized void zapiszBazeDoPliku() {
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(PLIK_BAZY))) {
             oos.writeObject(new ArrayList<>(listaUzytkownikow));
-            oos.writeObject(new ArrayList<>(listaWynikow));
+            oos.writeObject(new ArrayList<>(listaAnkiet));
             oos.writeObject(new ArrayList<>(listaSzablonow));
         } catch (IOException e) {
             System.err.println("Błąd zapisu: " + e.getMessage());
@@ -112,8 +112,8 @@ public class BazaDanych {
         return new ArrayList<>(listaSzablonow);
     }
 
-    public synchronized void dodajWynik(Ankieta w) {
-        listaWynikow.add(w);
+    public synchronized void dodajAnkiete(Ankieta w) {
+        listaAnkiet.add(w);
         zapiszBazeDoPliku();
     }
 
@@ -122,6 +122,14 @@ public class BazaDanych {
                 .filter(s -> s.getId().equals(id))
                 .findFirst()
                 .orElse(null);
+    }
+    public synchronized void zapiszLubAktualizujAnkiete(Ankieta nowaAnkieta) {
+        listaAnkiet.removeIf(a -> a.getLoginUzytkownika().equals(nowaAnkieta.getLoginUzytkownika())
+                && a.getIdSzablonu().equals(nowaAnkieta.getIdSzablonu())
+                && !a.czyZakonczona());
+
+        listaAnkiet.add(nowaAnkieta);
+        zapiszBazeDoPliku();
     }
 }
 

@@ -60,6 +60,9 @@ public class PanelDashboard extends JPanel {
             panelTresci.add(widokDlaUsera, "ANKIETY");
         }
 
+        WidokAnkiet widokAnkiet = new WidokAnkiet(klient, czyAdmin);
+        panelTresci.add(widokAnkiet, "ANKIETY");
+
         JPanel raportyPanel = new JPanel();
         raportyPanel.add(new JLabel("Tu będą wykresy"));
         panelTresci.add(raportyPanel, "RAPORTY");

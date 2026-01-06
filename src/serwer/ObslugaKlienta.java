@@ -37,7 +37,6 @@ public class ObslugaKlienta implements Runnable {
 
         switch (req.typ) {
             case LOGIN:
-                // Używamy nowej metody autentykuj, która wewnątrz sprawdza Hash
                 Uzytkownik u = baza.autentykuj(req.uzytkownik.getLogin(), req.uzytkownik.getHaslo());
 
                 if (u != null) {
@@ -51,11 +50,7 @@ public class ObslugaKlienta implements Runnable {
 
             case REJESTRACJA:
                 if (baza.znajdzUzytkownika(req.uzytkownik.getLogin()) == null) {
-                    // Rola ustawiana automatycznie dla rejestrujących się
                     req.uzytkownik.setRodzajKonta(RodzajKonta.UZYTKOWNIK);
-
-                    // Metoda dodajUzytkownika w klasie BazaDanych powinna
-                    // teraz sama wywołać Bezpieczenstwo.hashujHaslo()
                     baza.dodajUzytkownika(req.uzytkownik);
 
                     resp.wiadomosc = "Konto zostało utworzone";
@@ -98,24 +93,33 @@ public class ObslugaKlienta implements Runnable {
                 break;
 
             case DODAJ_SZABLON:
-                // Pobieramy szablon z pola szablon w komunikacie
                 baza.dodajSzablon(req.getSzablon());
                 resp.wiadomosc = "Dodano nowy szablon ankiety!";
                 break;
 
             case POBIERZ_SZABLONY:
-                // Serwer pakuje listę wszystkich szablonów do komunikatu zwrotnego
                 resp.setListaSzablonow(baza.getListaSzablonow());
                 break;
 
             case USUN_SZABLON:
-                // Pobieramy ID, które klient wpisał w pole wiadomosc
                 String idDoUsuniecia = req.getWiadomosc();
                 if (baza.usunSzablon(idDoUsuniecia)) {
                     resp.setWiadomosc("Ankieta została usunięta.");
                 } else {
                     resp.setTyp(TypKomunikatu.ODPOWIEDZ_BLAD);
                     resp.setWiadomosc("Nie znaleziono ankiety o podanym ID.");
+                }
+                break;
+
+            case ZAPISZ_ANKIETE:
+                Ankieta a = req.getAnkieta();
+                String status = req.getWiadomosc();
+
+                if (a != null) {
+                    baza.zapiszLubAktualizujAnkiete(a);
+                    resp.setWiadomosc("Zapisano status: " + status);
+                } else {
+                    resp.setTyp(TypKomunikatu.ODPOWIEDZ_BLAD);
                 }
                 break;
         }

@@ -21,7 +21,7 @@ public class Klient extends JFrame {
 
     private JTextField loginField;
     private JPasswordField passField;
-
+    private Uzytkownik zalogowanyUser;
 
     private DefaultTableModel tableModel;
     private JTable usersTable;
@@ -107,6 +107,20 @@ public class Klient extends JFrame {
         return p;
     }
 
+    public boolean zaloguj(String login, String haslo) {
+        Komunikat req = new Komunikat(TypKomunikatu.LOGIN);
+        req.setUzytkownik(new Uzytkownik(login, haslo, null));
+
+        Komunikat resp = wyslij(req);
+
+        if (resp != null && resp.getTyp() == TypKomunikatu.ODPOWIEDZ_OK) {
+            // TUTAJ przypisujemy użytkownika zwróconego przez serwer
+            this.zalogowanyUser = resp.getUzytkownik();
+            return true;
+        }
+        return false;
+    }
+
     public void wyloguj() {
         loginField.setText("");
         passField.setText("");
@@ -149,6 +163,8 @@ public class Klient extends JFrame {
 
         Komunikat resp = wyslij(req);
         JOptionPane.showMessageDialog(this, resp.wiadomosc);
+        loginField.setText("");
+        passField.setText("");
     }
 
     private void akcjaEdycja() {
@@ -198,5 +214,9 @@ public class Klient extends JFrame {
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(Klient::new);
+    }
+
+    public Uzytkownik getZalogowanyUser() {
+        return zalogowanyUser;
     }
 }
