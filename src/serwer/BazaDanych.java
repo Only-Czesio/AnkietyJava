@@ -45,37 +45,31 @@ public class BazaDanych {
         Uzytkownik uzytkownik = znajdzUzytkownika(login);
 
         if (uzytkownik != null) {
-            // Porównujemy podane hasło (tekst) z hashem zapisanym w obiekcie
             if (Bezpieczenstwo.sprawdzHaslo(hasloNiezaszyfrowane, uzytkownik.getHaslo())) {
-                return uzytkownik; // Sukces
+                return uzytkownik;
             }
         }
-        return null; // Błąd logowania
+        return null;
     }
 
     public synchronized List<Uzytkownik> getListaUzytkownikow() {
         return new ArrayList<>(listaUzytkownikow);
     }
 
-    // Dodawanie użytkownika
+
     public synchronized void dodajUzytkownika(Uzytkownik u) {
-        // Hashujemy hasło przed zapisem!
         String zahashowane = Bezpieczenstwo.hashujHaslo(u.getHaslo());
         u.setHaslo(zahashowane);
-
         listaUzytkownikow.add(u);
         zapiszBazeDoPliku();
     }
 
-    // Edytowanie użytkownika
     public synchronized boolean edytujUzytkownika(Uzytkownik dane) {
         for (int i = 0; i < listaUzytkownikow.size(); i++) {
             Uzytkownik u = listaUzytkownikow.get(i);
             if (u.getLogin().equals(dane.getLogin())) {
-                // Aktualizujemy rolę
                 u.setRodzajKonta(dane.getRodzajKonta());
 
-                // Jeśli admin wpisał nowe hasło w oknie edycji, hashujemy je i nadpisujemy
                 if (dane.getHaslo() != null && !dane.getHaslo().isEmpty()) {
                     u.setHaslo(Bezpieczenstwo.hashujHaslo(dane.getHaslo()));
                 }

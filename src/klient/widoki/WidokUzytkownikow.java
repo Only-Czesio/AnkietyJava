@@ -16,13 +16,10 @@ public class WidokUzytkownikow extends WidokBazowy {
 
     @Override
     protected void odswiezDane() {
-        // 1. Wysyłamy prośbę do serwera
         Komunikat resp = klient.wyslij(new Komunikat(TypKomunikatu.POBIERZ_UZYTKOWNIKOW));
 
-        // 2. Czyścimy aktualną tabelę
         modelTabeli.setRowCount(0);
 
-        // 3. Sprawdzamy czy lista nie jest nullem i wypełniamy tabelę
         if (resp != null && resp.getListaUzytkownikow() != null) {
             for (Uzytkownik u : resp.getListaUzytkownikow()) {
                 modelTabeli.addRow(new Object[]{
@@ -74,7 +71,6 @@ public class WidokUzytkownikow extends WidokBazowy {
             return;
         }
 
-        // Szukamy danych użytkownika w modelu tabeli (lub prosimy serwer o świeże dane)
         int row = tabela.getSelectedRow();
         RodzajKonta obecnaRola = (RodzajKonta) modelTabeli.getValueAt(row, 2);
 
@@ -105,7 +101,7 @@ public class WidokUzytkownikow extends WidokBazowy {
 
     @Override
     protected void akcjaUsun() {
-        String login = pobierzZaznaczoneId(); // Pobiera login z pierwszej kolumny zaznaczonego wiersza
+        String login = pobierzZaznaczoneId();
         if (login == null) {
             JOptionPane.showMessageDialog(this, "Zaznacz użytkownika do usunięcia!");
             return;

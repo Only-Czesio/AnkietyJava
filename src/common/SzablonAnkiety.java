@@ -21,7 +21,6 @@ public class SzablonAnkiety implements Serializable {
         this.pytania.add(p);
     }
 
-    // Gettery i Settery
     public String getId() { return id; }
     public String getTytul() { return tytul; }
     public List<Pytanie> getPytania() { return pytania; }

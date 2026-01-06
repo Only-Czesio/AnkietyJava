@@ -11,15 +11,13 @@ public class Bezpieczenstwo {
     private static final int ITERACJE = 65536;
     private static final int DLUGOSC_KLUCZA = 256;
 
-    // Metoda tworząca hash z hasła
     public static String hashujHaslo(String haslo) {
         try {
             byte[] sol = new byte[16];
-            new SecureRandom().nextBytes(sol); // Generowanie losowej soli
+            new SecureRandom().nextBytes(sol);
 
             byte[] hash = obliczHash(haslo.toCharArray(), sol);
 
-            // Zapisujemy jako: sol:hash w formacie Base64
             return Base64.getEncoder().encodeToString(sol) + ":" +
                     Base64.getEncoder().encodeToString(hash);
         } catch (Exception e) {
@@ -27,7 +25,6 @@ public class Bezpieczenstwo {
         }
     }
 
-    // Metoda sprawdzająca, czy hasło pasuje do hasha
     public static boolean sprawdzHaslo(String hasloPodane, String hashZBiblioteki) {
         try {
             String[] czesci = hashZBiblioteki.split(":");

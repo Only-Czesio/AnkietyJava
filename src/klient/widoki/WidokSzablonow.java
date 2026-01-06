@@ -36,7 +36,7 @@ public class WidokSzablonow extends WidokBazowy {
         if (dialog.isZatwierdzono()) {
             SzablonAnkiety nowy = dialog.getSzablon();
             Komunikat req = new Komunikat(TypKomunikatu.DODAJ_SZABLON);
-            req.setSzablon(nowy); // Używamy pola 'szablon'
+            req.setSzablon(nowy);
 
             klient.wyslij(req);
             odswiezDane();
@@ -46,12 +46,16 @@ public class WidokSzablonow extends WidokBazowy {
     @Override
     protected void akcjaUsun() {
         String id = pobierzZaznaczoneId();
-        if (id == null) return;
+        if (id == null) {
+            JOptionPane.showMessageDialog(this, "Zaznacz ankietę do usunięcia!");
+            return;
+        }
 
-        int confirm = JOptionPane.showConfirmDialog(this, "Usunąć ankietę " + id + "?");
+        int confirm = JOptionPane.showConfirmDialog(this, "Czy na pewno chcesz usunąć ankietę: " + id + "?");
         if (confirm == JOptionPane.YES_OPTION) {
             Komunikat req = new Komunikat(TypKomunikatu.USUN_SZABLON);
-            req.setWiadomosc(id); // Przesyłamy ID do usunięcia
+            req.setWiadomosc(id);
+
             klient.wyslij(req);
             odswiezDane();
         }

@@ -7,12 +7,10 @@ import java.awt.*;
 
 public class PanelDashboard extends JPanel {
 
-    private Klient klient;
-    private JPanel panelTresci;
-    private CardLayout cardLayoutTresci;
+    private final JPanel panelTresci;
+    private final CardLayout cardLayoutTresci;
 
     public PanelDashboard(Klient klient, boolean czyAdmin) {
-        this.klient = klient;
         setLayout(new BorderLayout());
 
         // --- 1. PASEK BOCZNY (MENU) ---
@@ -32,7 +30,6 @@ public class PanelDashboard extends JPanel {
         menuPanel.add(btnAnkiety);
         menuPanel.add(btnRaporty);
 
-        // Przycisk widoczny tylko dla ADMINA
         if (czyAdmin) {
             menuPanel.add(btnUzytkownicy);
         }
@@ -42,41 +39,32 @@ public class PanelDashboard extends JPanel {
 
         add(menuPanel, BorderLayout.WEST);
 
-        // --- 2. ŚRODEK (ZMIENNA TREŚĆ) ---
         cardLayoutTresci = new CardLayout();
         panelTresci = new JPanel(cardLayoutTresci);
 
-        // -- A. Widok Startowy --
         JPanel startPanel = new JPanel();
         startPanel.add(new JLabel("Witaj! Wybierz opcję z menu po lewej."));
         panelTresci.add(startPanel, "START");
 
-        // -- B. Widok Użytkowników (Tylko dla admina) --
         if (czyAdmin) {
-            // Tutaj wstawiamy Twój gotowy WidokUzytkownikow!
             WidokUzytkownikow widokUserow = new WidokUzytkownikow(klient);
             panelTresci.add(widokUserow, "UZYTKOWNICY");
         }
 
         if (czyAdmin) {
-
             WidokSzablonow widokSzablonow = new WidokSzablonow(klient);
             panelTresci.add(widokSzablonow, "ANKIETY");
         } else {
-
             JPanel widokDlaUsera = new JPanel();
             widokDlaUsera.add(new JLabel("Lista ankiet do wypełnienia - wkrótce!"));
             panelTresci.add(widokDlaUsera, "ANKIETY");
         }
 
-        // -- D. Widok Raportów (Placeholder) --
         JPanel raportyPanel = new JPanel();
         raportyPanel.add(new JLabel("Tu będą wykresy"));
         panelTresci.add(raportyPanel, "RAPORTY");
 
         add(panelTresci, BorderLayout.CENTER);
-
-        // --- 3. OBSŁUGA KLIKNIĘĆ (NAWIGACJA) ---
 
         btnStart.addActionListener(e -> cardLayoutTresci.show(panelTresci, "START"));
         btnAnkiety.addActionListener(e -> cardLayoutTresci.show(panelTresci, "ANKIETY"));
@@ -86,7 +74,6 @@ public class PanelDashboard extends JPanel {
             btnUzytkownicy.addActionListener(e -> cardLayoutTresci.show(panelTresci, "UZYTKOWNICY"));
         }
 
-        // Wylogowanie wywołuje metodę w głównym Kliencie
         btnWyloguj.addActionListener(e -> klient.wyloguj());
     }
 }

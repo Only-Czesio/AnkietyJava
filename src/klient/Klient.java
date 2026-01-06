@@ -107,56 +107,6 @@ public class Klient extends JFrame {
         return p;
     }
 
-    private JPanel budujPanelAdmina() {
-        JPanel p = new JPanel(new BorderLayout());
-
-        // Tabela użytkowników
-        String[] kolumny = {"Login", "Hasło", "Czy Admin"};
-        tableModel = new DefaultTableModel(kolumny, 0);
-        usersTable = new JTable(tableModel);
-
-        JPanel top = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        top.add(new JLabel("PANEL ADMINISTRATORA"));
-        JButton refresh = new JButton("Odśwież listę");
-        top.add(refresh);
-
-        JPanel bottom = new JPanel();
-        JButton btnEdit = new JButton("Edytuj zaznaczonego");
-        JButton btnDelete = new JButton("Usuń zaznaczonego");
-        JButton btnLogout = new JButton("Wyloguj");
-        bottom.add(btnEdit);
-        bottom.add(btnDelete);
-        bottom.add(btnLogout);
-
-        p.add(top, BorderLayout.NORTH);
-        p.add(new JScrollPane(usersTable), BorderLayout.CENTER);
-        p.add(bottom, BorderLayout.SOUTH);
-
-        // Akcje przycisków
-        refresh.addActionListener(e -> odswiezListeUzytkownikow());
-        btnLogout.addActionListener(e -> wyloguj());
-
-        btnDelete.addActionListener(e -> {
-            int row = usersTable.getSelectedRow();
-            if(row == -1) return;
-            String login = (String) tableModel.getValueAt(row, 0);
-
-            if(login.equals(loginField.getText())) {
-                JOptionPane.showMessageDialog(this, "Nie możesz usunąć siebie!");
-                return;
-            }
-
-            Komunikat req = new Komunikat(TypKomunikatu.USUN_UZYTKOWNIKA);
-            req.uzytkownik = new Uzytkownik(login, "", RodzajKonta.UZYTKOWNIK);
-            wyslij(req);
-            odswiezListeUzytkownikow();
-        });
-
-        btnEdit.addActionListener(e -> akcjaEdycja());
-
-        return p;
-    }
-
     public void wyloguj() {
         loginField.setText("");
         passField.setText("");
@@ -169,29 +119,19 @@ public class Klient extends JFrame {
         String h = new String(passField.getPassword());
 
         Komunikat req = new Komunikat(TypKomunikatu.LOGIN);
-        // Tu wysyłamy pustego użytkownika tylko z loginem i hasłem do sprawdzenia
-        req.uzytkownik = new Uzytkownik(l, h, RodzajKonta.UZYTKOWNIK); // false lub cokolwiek, serwer to zweryfikuje
+        req.uzytkownik = new Uzytkownik(l, h, RodzajKonta.UZYTKOWNIK);
 
         Komunikat resp = wyslij(req);
 
         if (resp.typ == TypKomunikatu.ODPOWIEDZ_OK) {
-            // Logowanie udane!
+
             JOptionPane.showMessageDialog(this, "Zalogowano!");
 
-            // Sprawdzamy czy admin na podstawie odpowiedzi z serwera
             boolean czyAdmin = resp.uzytkownik.rodzajKonta.equals(RodzajKonta.ADMIN);
 
-            // --- TWORZYMY DASHBOARD DYNAMICZNIE ---
-            // Usuwamy stary panel aplikacji (jeśli istniał), żeby go odświeżyć
-            // (To prosty trik, żeby zresetować widok przy przelogowaniu na innego usera)
-
-            // Tworzymy nowy panel dashboardu przekazując "this" (klienta) i flagę admina
             PanelDashboard dashboard = new PanelDashboard(this, czyAdmin);
 
-            // Dodajemy go do głównego kontenera pod nazwą "APP"
             mainPanel.add(dashboard, "APP");
-
-            // Przełączamy widok
             cardLayout.show(mainPanel, "APP");
 
         } else {
@@ -222,7 +162,6 @@ public class Klient extends JFrame {
         String stareHaslo = (String) tableModel.getValueAt(row, 1);
         boolean czyAdmin = tableModel.getValueAt(row, 2).equals(RodzajKonta.ADMIN);
 
-        // Proste okienko edycji
         JTextField passEdit = new JTextField(stareHaslo);
         JCheckBox adminCheck = new JCheckBox("Administrator", czyAdmin);
         Object[] msg = {"Nowe hasło:", passEdit, adminCheck};
@@ -239,7 +178,7 @@ public class Klient extends JFrame {
     private void odswiezListeUzytkownikow() {
         Komunikat resp = wyslij(new Komunikat(TypKomunikatu.POBIERZ_UZYTKOWNIKOW));
         if (resp.listaUzytkownikow != null) {
-            tableModel.setRowCount(0); // Wyczyść tabelę
+            tableModel.setRowCount(0);
             for (Uzytkownik u : resp.listaUzytkownikow) {
                 tableModel.addRow(new Object[]{u.login, u.haslo, u.rodzajKonta});
             }

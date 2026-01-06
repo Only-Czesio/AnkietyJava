@@ -29,6 +29,16 @@ public class KreatorAnkietyDialog extends JDialog {
         btnDodajPytanie.addActionListener(e -> dodajPytanieDialog());
         center.add(btnDodajPytanie, BorderLayout.SOUTH);
 
+        JPanel bottom = getJPanel();
+
+        add(top, BorderLayout.NORTH);
+        add(center, BorderLayout.CENTER);
+        add(bottom, BorderLayout.SOUTH);
+        setSize(400, 500);
+        setLocationRelativeTo(owner);
+    }
+
+    private JPanel getJPanel() {
         JPanel bottom = new JPanel();
         JButton btnZapisz = new JButton("Zapisz całą ankietę");
         JButton btnAnuluj = new JButton("Anuluj");
@@ -45,12 +55,7 @@ public class KreatorAnkietyDialog extends JDialog {
         btnAnuluj.addActionListener(e -> dispose());
         bottom.add(btnZapisz);
         bottom.add(btnAnuluj);
-
-        add(top, BorderLayout.NORTH);
-        add(center, BorderLayout.CENTER);
-        add(bottom, BorderLayout.SOUTH);
-        setSize(400, 500);
-        setLocationRelativeTo(owner);
+        return bottom;
     }
 
     private void dodajPytanieDialog() {
