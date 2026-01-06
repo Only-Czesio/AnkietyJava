@@ -10,14 +10,14 @@ public class Komunikat implements Serializable {
 
     public TypKomunikatu typ;
     public String wiadomosc;
-    public Uzytkownik uzytkownik;
+
     public List<Uzytkownik> listaUzytkownikow;
     public List<SzablonAnkiety> listaSzablonow;
     public List<Ankieta> listaOdpowiedzi;
+
+    public Uzytkownik uzytkownik;
     public SzablonAnkiety szablon;
     public Ankieta ankieta;
-
-
 
     public Komunikat(TypKomunikatu typ, String wiadomosc) {
         this.typ = typ;

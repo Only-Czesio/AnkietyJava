@@ -57,7 +57,7 @@ public class OknoAnkiety extends JDialog {
         JButton btnZakoncz = new JButton("Zakończ i wyślij");
         btnZakoncz.addActionListener(e -> {
             aktualnaAnkieta.zakonczAnkiete();
-            Komunikat req = new Komunikat(TypKomunikatu.ZAPISZ_ANKIETE, "FINAL");
+            Komunikat req = new Komunikat(TypKomunikatu.ZAPISZ_ANKIETE, "Zakończono");
             req.setAnkieta(aktualnaAnkieta);
             klient.wyslij(req);
             dispose();
@@ -67,7 +67,7 @@ public class OknoAnkiety extends JDialog {
     }
 
     private void wyslijSzkic(Klient klient) {
-        Komunikat req = new Komunikat(TypKomunikatu.ZAPISZ_ANKIETE, "DRAFT");
+        Komunikat req = new Komunikat(TypKomunikatu.ZAPISZ_ANKIETE, "Zapisano");
         req.setAnkieta(aktualnaAnkieta);
         klient.wyslij(req);
     }

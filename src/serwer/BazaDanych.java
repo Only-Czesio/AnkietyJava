@@ -124,7 +124,7 @@ public class BazaDanych {
                 .orElse(null);
     }
     public synchronized void zapiszLubAktualizujAnkiete(Ankieta nowaAnkieta) {
-        listaAnkiet.removeIf(a -> a.getLoginUzytkownika().equals(nowaAnkieta.getLoginUzytkownika())
+        listaAnkiet.removeIf(a -> a.getIDUzytkownika().equals(nowaAnkieta.getIDUzytkownika())
                 && a.getIdSzablonu().equals(nowaAnkieta.getIdSzablonu())
                 && !a.czyZakonczona());
 

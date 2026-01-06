@@ -30,10 +30,8 @@ public class Bezpieczenstwo {
             String[] czesci = hashZBiblioteki.split(":");
             byte[] sol = Base64.getDecoder().decode(czesci[0]);
             byte[] hashOczekiwany = Base64.getDecoder().decode(czesci[1]);
-
             byte[] hashPodany = obliczHash(hasloPodane.toCharArray(), sol);
 
-            // Porównanie bit po bicie
             int diff = hashOczekiwany.length ^ hashPodany.length;
             for (int i = 0; i < hashOczekiwany.length && i < hashPodany.length; i++) {
                 diff |= hashOczekiwany[i] ^ hashPodany[i];
