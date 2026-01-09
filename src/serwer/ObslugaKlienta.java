@@ -5,8 +5,8 @@ import java.io.*;
 import java.net.Socket;
 
 public class ObslugaKlienta implements Runnable {
-    private Socket socket;
-    private BazaDanych baza;
+    private final Socket socket;
+    private final BazaDanych baza;
 
     public ObslugaKlienta(Socket socket, BazaDanych baza) {
         this.socket = socket;
@@ -97,8 +97,20 @@ public class ObslugaKlienta implements Runnable {
                 resp.wiadomosc = "Dodano nowy szablon ankiety!";
                 break;
 
-            case POBIERZ_SZABLONY:
-                resp.setListaSzablonow(baza.getListaSzablonow());
+            case EDYTUJ_SZABLON:
+                baza.edytujSzablon(req.getSzablon());
+                resp.setTyp(TypKomunikatu.ODPOWIEDZ_OK);
+                break;
+
+            case POBIERZ_SZABLON:
+                String idSzukanego = req.getWiadomosc();
+                SzablonAnkiety znaleziony = baza.getListaSzablonow().stream()
+                        .filter(s -> s.getId().equals(idSzukanego))
+                        .findFirst()
+                        .orElse(null);
+
+                resp.setSzablon(znaleziony);
+                resp.setTyp(TypKomunikatu.ODPOWIEDZ_OK);
                 break;
 
             case USUN_SZABLON:

@@ -15,8 +15,8 @@ public class PanelDashboard extends JPanel {
 
         // --- 1. PASEK BOCZNY (MENU) ---
         JPanel menuPanel = new JPanel();
-        menuPanel.setLayout(new GridLayout(10, 1, 5, 5)); // Lista przycisków w pionie
-        menuPanel.setPreferredSize(new Dimension(200, 0)); // Szerokość paska
+        menuPanel.setLayout(new GridLayout(10, 1, 5, 5));
+        menuPanel.setPreferredSize(new Dimension(200, 0));
         menuPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         menuPanel.setBackground(Color.LIGHT_GRAY);
 

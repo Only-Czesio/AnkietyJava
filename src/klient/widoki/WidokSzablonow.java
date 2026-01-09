@@ -33,7 +33,7 @@ public class WidokSzablonow extends WidokBazowy {
         KreatorAnkietyDialog dialog = new KreatorAnkietyDialog((JFrame) SwingUtilities.getWindowAncestor(this));
         dialog.setVisible(true);
 
-        if (dialog.isZatwierdzono()) {
+        if (dialog.czyZatwierdzono()) {
             SzablonAnkiety nowy = dialog.getSzablon();
             Komunikat req = new Komunikat(TypKomunikatu.DODAJ_SZABLON);
             req.setSzablon(nowy);

@@ -10,29 +10,44 @@ import java.util.Map;
 
 
 public class OknoAnkiety extends JDialog {
-    private final Map<Integer, List<Integer>> wybraneOdpowiedzi = new HashMap<>();
+    private Map<Integer, List<Integer>> wybraneOdpowiedzi = new HashMap<>();
     private final Ankieta aktualnaAnkieta;
 
     public OknoAnkiety(SzablonAnkiety szablon, Klient klient) {
         setTitle("Wypełnianie: " + szablon.getTytul());
         setLayout(new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
-        aktualnaAnkieta = new Ankieta(szablon.getId(), klient.getZalogowanyUser().getLogin(), wybraneOdpowiedzi);
+
+        Komunikat reqSzkic = new Komunikat(TypKomunikatu.POBIERZ_MOJE_ANKIETY); // Serwer odfiltruje po loginie i ID szablonu
+        reqSzkic.setWiadomosc(szablon.getId());
+        Komunikat respSzkic = klient.wyslij(reqSzkic);
+
+        if (respSzkic != null && respSzkic.getAnkieta() != null) {
+            this.aktualnaAnkieta = respSzkic.getAnkieta();
+            this.wybraneOdpowiedzi = aktualnaAnkieta.getOdpowiedzi();
+        } else {
+            this.aktualnaAnkieta = new Ankieta(szablon.getId(), klient.getZalogowanyUser().getLogin(), wybraneOdpowiedzi);
+        }
+
         for (int i = 0; i < szablon.getPytania().size(); i++) {
             Pytanie p = szablon.getPytania().get(i);
             add(new JLabel(p.getTrescPytania()));
-            final int nrPytania = i;
+            int nrPytania = i;
+
+            List<Integer> juzZaznaczone = wybraneOdpowiedzi.getOrDefault(nrPytania, new java.util.ArrayList<>());
+
             if (p.czyWielokrotnyWybor()) {
                 for (int j = 0; j < p.getOpcjeOdpowiedzi().size(); j++) {
-                    final int nrOpcji = j;
+                    int nrOpcji = j;
                     JCheckBox cb = new JCheckBox(p.getOpcjeOdpowiedzi().get(j));
 
-                    cb.addActionListener(e -> {
-                        List<Integer> wybrane = wybraneOdpowiedzi.computeIfAbsent(nrPytania, k -> new java.util.ArrayList<>());
+                    if (juzZaznaczone.contains(nrOpcji)) cb.setSelected(true);
 
+                    cb.addActionListener(e -> {
+                        List<Integer> lista = wybraneOdpowiedzi.computeIfAbsent(nrPytania, k -> new java.util.ArrayList<>());
                         if (cb.isSelected()) {
-                            if (!wybrane.contains(nrOpcji)) wybrane.add(nrOpcji);
+                            if (!lista.contains(nrOpcji)) lista.add(nrOpcji);
                         } else {
-                            wybrane.remove(Integer.valueOf(nrOpcji));
+                            lista.remove(Integer.valueOf(nrOpcji));
                         }
                         wyslijSzkic(klient);
                     });
@@ -41,8 +56,10 @@ public class OknoAnkiety extends JDialog {
             } else {
                 ButtonGroup grupa = new ButtonGroup();
                 for (int j = 0; j < p.getOpcjeOdpowiedzi().size(); j++) {
-                    final int nrOpcji = j;
+                    int nrOpcji = j;
                     JRadioButton rb = new JRadioButton(p.getOpcjeOdpowiedzi().get(j));
+
+                    if (juzZaznaczone.contains(nrOpcji)) rb.setSelected(true);
 
                     rb.addActionListener(e -> {
                         wybraneOdpowiedzi.put(nrPytania, java.util.Collections.singletonList(nrOpcji));

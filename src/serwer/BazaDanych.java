@@ -9,6 +9,7 @@ public class BazaDanych {
     private List<Uzytkownik> listaUzytkownikow = new ArrayList<>();
     private List<SzablonAnkiety> listaSzablonow = new ArrayList<>();
     private List<Ankieta> listaAnkiet = new ArrayList<>();
+    private List<Ankieta> listaWynikow = new ArrayList<>();
 
     public BazaDanych() {
         wczytajBazeZPliku();
@@ -99,6 +100,16 @@ public class BazaDanych {
         zapiszBazeDoPliku();
     }
 
+    public synchronized void edytujSzablon(SzablonAnkiety nowySzablon) {
+        for (int i = 0; i < listaSzablonow.size(); i++) {
+            if (listaSzablonow.get(i).getId().equals(nowySzablon.getId())) {
+                listaSzablonow.set(i, nowySzablon);
+                zapiszBazeDoPliku();
+                return;
+            }
+        }
+    }
+
     public synchronized boolean usunSzablon(String id) {
         boolean usunieto = listaSzablonow.removeIf(s -> s.getId().equals(id));
 
@@ -112,17 +123,6 @@ public class BazaDanych {
         return new ArrayList<>(listaSzablonow);
     }
 
-    public synchronized void dodajAnkiete(Ankieta w) {
-        listaAnkiet.add(w);
-        zapiszBazeDoPliku();
-    }
-
-    public synchronized SzablonAnkiety znajdzSzablon(String id) {
-        return listaSzablonow.stream()
-                .filter(s -> s.getId().equals(id))
-                .findFirst()
-                .orElse(null);
-    }
     public synchronized void zapiszLubAktualizujAnkiete(Ankieta nowaAnkieta) {
         listaAnkiet.removeIf(a -> a.getIDUzytkownika().equals(nowaAnkieta.getIDUzytkownika())
                 && a.getIdSzablonu().equals(nowaAnkieta.getIdSzablonu())
@@ -130,6 +130,15 @@ public class BazaDanych {
 
         listaAnkiet.add(nowaAnkieta);
         zapiszBazeDoPliku();
+    }
+
+    public synchronized String pobierzStatus(String idSzablonu, String IDuzytkownika) {
+        for (Ankieta a : listaWynikow) {
+            if (a.getIdSzablonu().equals(idSzablonu) && a.getIDUzytkownika().equals(IDuzytkownika)) {
+                return a.czyZakonczona() ? "ZAKOŃCZONA" : "W TRAKCIE";
+            }
+        }
+        return "NOWA";
     }
 }
 

@@ -5,7 +5,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 public class Serwer {
-    private static final int PORT = 5000;
+    private static final int PORT = 6000;
 
     public static void main(String[] args) {
         BazaDanych baza = new BazaDanych();

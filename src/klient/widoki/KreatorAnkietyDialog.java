@@ -12,6 +12,7 @@ public class KreatorAnkietyDialog extends JDialog {
     private JList<String> pytaniaList = new JList<>(pytaniaModel);
     private List<Pytanie> listaPytan = new ArrayList<>();
     private boolean zatwierdzono = false;
+    private String idEdytowanego = null;
 
     public KreatorAnkietyDialog(Frame owner) {
         super(owner, "Nowy Szablon Ankiety", true);
@@ -37,6 +38,23 @@ public class KreatorAnkietyDialog extends JDialog {
         setSize(400, 500);
         setLocationRelativeTo(owner);
     }
+
+    public KreatorAnkietyDialog(Frame owner, SzablonAnkiety szablonDoEdycji) {
+        this(owner); // Wywołuje główny konstruktor budujący GUI
+        setTitle("Edycja Szablonu: " + szablonDoEdycji.getTytul());
+
+        tytulField.setText(szablonDoEdycji.getTytul());
+        listaPytan.addAll(szablonDoEdycji.getPytania());
+
+        for (Pytanie p : listaPytan) {
+            String typStr = p.czyWielokrotnyWybor() ? "[Wielo]" : "[Jedno]";
+            pytaniaModel.addElement(typStr + " " + p.getTrescPytania() + " (" + p.getOpcjeOdpowiedzi().size() + " odp)");
+        }
+
+        this.idEdytowanego = szablonDoEdycji.getId();
+    }
+
+
 
     private JPanel getJPanel() {
         JPanel bottom = new JPanel();
@@ -90,10 +108,11 @@ public class KreatorAnkietyDialog extends JDialog {
         }
     }
 
-    public boolean isZatwierdzono() { return zatwierdzono; }
+    public boolean czyZatwierdzono() { return zatwierdzono; }
 
     public SzablonAnkiety getSzablon() {
-        SzablonAnkiety s = new SzablonAnkiety(UUID.randomUUID().toString(), tytulField.getText());
+        String id = (idEdytowanego != null) ? idEdytowanego : UUID.randomUUID().toString();
+        SzablonAnkiety s = new SzablonAnkiety(id, tytulField.getText());
         for (Pytanie p : listaPytan) s.dodajPytanie(p);
         return s;
     }

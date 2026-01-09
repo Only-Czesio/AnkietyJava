@@ -50,7 +50,7 @@ public class WidokAnkiet extends WidokBazowy {
             KreatorAnkietyDialog dialog = new KreatorAnkietyDialog((Frame) parentWindow);
             dialog.setVisible(true);
 
-            if (dialog.isZatwierdzono()) {
+            if (dialog.czyZatwierdzono()) {
                 SzablonAnkiety nowySzablon = dialog.getSzablon();
                 Komunikat req = new Komunikat(TypKomunikatu.DODAJ_SZABLON);
                 req.setSzablon(nowySzablon);
@@ -77,16 +77,57 @@ public class WidokAnkiet extends WidokBazowy {
                 okno.setVisible(true);
                 odswiezDane();
             }
+            String status = (String) modelTabeli.getValueAt(tabela.getSelectedRow(), 2);
+            if ("ZAKOŃCZONA".equals(status)) {
+                JOptionPane.showMessageDialog(this, "Tę ankietę już wypełniłeś!");
+            }
         }
     }
 
     @Override
     protected void akcjaEdytuj() {
+        if (!czyAdmin) return;
 
+        String id = pobierzZaznaczoneId();
+        if (id == null) {
+            JOptionPane.showMessageDialog(this, "Wybierz ankietę z tabeli!");
+            return;
+        }
+
+        Komunikat req = new Komunikat(TypKomunikatu.POBIERZ_SZABLON);
+        req.setWiadomosc(id);
+        Komunikat resp = klient.wyslij(req);
+
+        if (resp != null && resp.getSzablon() != null) {
+            Window parentWindow = SwingUtilities.getWindowAncestor(this);
+            KreatorAnkietyDialog dialog = new KreatorAnkietyDialog((Frame) parentWindow, resp.getSzablon());
+            dialog.setVisible(true);
+
+            if (dialog.czyZatwierdzono()) {
+                Komunikat updateReq = new Komunikat(TypKomunikatu.EDYTUJ_SZABLON);
+                updateReq.setSzablon(dialog.getSzablon());
+                klient.wyslij(updateReq);
+                odswiezDane();
+            }
+        }
     }
 
     @Override
     protected void akcjaUsun() {
+        if (!czyAdmin) return;
 
+        String id = pobierzZaznaczoneId();
+        if (id == null) {
+            JOptionPane.showMessageDialog(this, "Zaznacz coś do usunięcia!");
+            return;
+        }
+
+        int confirm = JOptionPane.showConfirmDialog(this, "Czy na pewno usunąć ankietę " + id + "?");
+        if (confirm == JOptionPane.YES_OPTION) {
+            Komunikat req = new Komunikat(TypKomunikatu.USUN_SZABLON);
+            req.setWiadomosc(id);
+            klient.wyslij(req);
+            odswiezDane();
+        }
     }
 }

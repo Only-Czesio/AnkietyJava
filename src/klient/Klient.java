@@ -1,7 +1,6 @@
 package klient;
 
 import common.*;
-import klient.widoki.WidokUzytkownikow;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
@@ -10,7 +9,7 @@ import java.net.Socket;
 
 public class Klient extends JFrame {
     private static final String HOST = "localhost";
-    private static final int PORT = 5000;
+    private static final int PORT = 6000;
 
     private Socket socket;
     private ObjectOutputStream out;
@@ -26,7 +25,16 @@ public class Klient extends JFrame {
     private DefaultTableModel tableModel;
     private JTable usersTable;
 
-
+    public Klient(String host, int port) {
+        try {
+            socket = new Socket(host, port);
+            out = new ObjectOutputStream(socket.getOutputStream());
+            out.flush();
+            in = new ObjectInputStream(socket.getInputStream());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     public Klient() {
         super("Ankiety ONLINE");
@@ -44,29 +52,8 @@ public class Klient extends JFrame {
 
         mainPanel.add(budujPanelLogowania(), "LOGIN");
 
-        JPanel adminContainer = new JPanel(new BorderLayout());
-
-        WidokUzytkownikow widokUsers = new WidokUzytkownikow(this);
-
-        JPanel adminTop = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        JButton btnWylogujAdmin = new JButton("Wyloguj");
-        btnWylogujAdmin.addActionListener(e -> wyloguj());
-        adminTop.add(new JLabel("Jesteś w panelu Administratora  "));
-        adminTop.add(btnWylogujAdmin);
-
-        adminContainer.add(adminTop, BorderLayout.NORTH);
-        adminContainer.add(widokUsers, BorderLayout.CENTER);
-
-        mainPanel.add(adminContainer, "ADMIN_PANEL");
-
-        JPanel userPanel = new JPanel();
-        userPanel.add(new JLabel("Witaj Użytkowniku! Tutaj wkrótce pojawią się ankiety."));
         JButton btnWylogujUser = new JButton("Wyloguj");
         btnWylogujUser.addActionListener(e -> wyloguj());
-        userPanel.add(btnWylogujUser);
-
-        mainPanel.add(userPanel, "USER_PANEL");
-
         add(mainPanel);
         setVisible(true);
     }
@@ -75,9 +62,13 @@ public class Klient extends JFrame {
         try {
             socket = new Socket(HOST, PORT);
             out = new ObjectOutputStream(socket.getOutputStream());
+            out.flush();
             in = new ObjectInputStream(socket.getInputStream());
             return true;
-        } catch (Exception e) { return false; }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     // --- BUDOWANIE WIDOKÓW ---
@@ -138,16 +129,14 @@ public class Klient extends JFrame {
         Komunikat resp = wyslij(req);
 
         if (resp.typ == TypKomunikatu.ODPOWIEDZ_OK) {
+            this.zalogowanyUser = resp.uzytkownik;
 
             JOptionPane.showMessageDialog(this, "Zalogowano!");
-
             boolean czyAdmin = resp.uzytkownik.rodzajKonta.equals(RodzajKonta.ADMIN);
 
             PanelDashboard dashboard = new PanelDashboard(this, czyAdmin);
-
             mainPanel.add(dashboard, "APP");
             cardLayout.show(mainPanel, "APP");
-
         } else {
             JOptionPane.showMessageDialog(this, resp.wiadomosc);
         }
