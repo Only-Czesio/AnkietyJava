@@ -9,7 +9,6 @@ public class BazaDanych {
     private List<Uzytkownik> listaUzytkownikow = new ArrayList<>();
     private List<SzablonAnkiety> listaSzablonow = new ArrayList<>();
     private List<Ankieta> listaAnkiet = new ArrayList<>();
-    private List<Ankieta> listaWynikow = new ArrayList<>();
 
     public BazaDanych() {
         wczytajBazeZPliku();
@@ -123,22 +122,51 @@ public class BazaDanych {
         return new ArrayList<>(listaSzablonow);
     }
 
-    public synchronized void zapiszLubAktualizujAnkiete(Ankieta nowaAnkieta) {
-        listaAnkiet.removeIf(a -> a.getIDUzytkownika().equals(nowaAnkieta.getIDUzytkownika())
-                && a.getIdSzablonu().equals(nowaAnkieta.getIdSzablonu())
-                && !a.czyZakonczona());
+    public synchronized void zapiszLubAktualizujAnkiete(Ankieta nowa) {
+        listaAnkiet.removeIf(a ->
+                a.getIDUzytkownika().equals(nowa.getIDUzytkownika())
+                        && a.getIdSzablonu().equals(nowa.getIdSzablonu())
+                        && !a.czyZakonczona()
+        );
 
-        listaAnkiet.add(nowaAnkieta);
+        listaAnkiet.add(nowa);
         zapiszBazeDoPliku();
     }
 
+    public synchronized Ankieta getAktywnaAnkieta(String idSzablonu, String user) {
+        return listaAnkiet.stream()
+                .filter(a -> a.getIdSzablonu().equals(idSzablonu))
+                .filter(a -> a.getIDUzytkownika().equals(user))
+                .filter(a -> !a.czyZakonczona())
+                .findFirst()
+                .orElse(null);
+    }
+
+    public synchronized Ankieta getOstatniaAnkieta(String idSzablonu, String login) {
+        return listaAnkiet.stream()
+                .filter(a -> a.getIdSzablonu().equals(idSzablonu))
+                .filter(a -> a.getIDUzytkownika().equals(login))
+                .reduce((first, second) -> second) // ostatnia
+                .orElse(null);
+    }
+
     public synchronized String pobierzStatus(String idSzablonu, String IDuzytkownika) {
-        for (Ankieta a : listaWynikow) {
-            if (a.getIdSzablonu().equals(idSzablonu) && a.getIDUzytkownika().equals(IDuzytkownika)) {
-                return a.czyZakonczona() ? "ZAKOŃCZONA" : "W TRAKCIE";
+        for (Ankieta a : listaAnkiet) {
+            if (a.getIdSzablonu().equals(idSzablonu)
+                    && a.getIDUzytkownika().equals(IDuzytkownika)) {
+
+                return a.czyZakonczona()
+                        ? "ZAKOŃCZONA"
+                        : "W TRAKCIE";
             }
         }
         return "NOWA";
     }
+
+
+    public synchronized List<Ankieta> getAnkiety() {
+        return new ArrayList<>(listaAnkiet);
+    }
+
 }
 

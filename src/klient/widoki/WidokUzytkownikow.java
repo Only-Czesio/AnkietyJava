@@ -17,7 +17,6 @@ public class WidokUzytkownikow extends WidokBazowy {
     @Override
     protected void odswiezDane() {
         Komunikat resp = klient.wyslij(new Komunikat(TypKomunikatu.POBIERZ_UZYTKOWNIKOW));
-
         modelTabeli.setRowCount(0);
 
         if (resp != null && resp.getListaUzytkownikow() != null) {
@@ -29,7 +28,6 @@ public class WidokUzytkownikow extends WidokBazowy {
                 });
             }
         }
-        System.out.println("Odświeżono listę użytkowników.");
     }
 
     @Override

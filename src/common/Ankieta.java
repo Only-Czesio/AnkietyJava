@@ -7,14 +7,11 @@ import java.util.List;
 
 public class Ankieta implements Serializable {
     private static final long serialVersionUID = 1L;
-
     private String idSzablonu;
     private String IDuzytkownika;
     private Map<Integer, List<Integer>> odpowiedzi;
-
     private LocalDateTime startDate;
     private LocalDateTime endDate;
-
     private boolean czyZakonczona;
 
     public Ankieta(String idSzablonu, String IDuzytkownika, Map<Integer, List<Integer>> odpowiedzi) {
@@ -28,19 +25,14 @@ public class Ankieta implements Serializable {
     public String getIdSzablonu() { return idSzablonu; }
     public String getIDUzytkownika() { return IDuzytkownika; }
     public Map<Integer, List<Integer>> getOdpowiedzi() { return odpowiedzi; }
-
+    public void setOdpowiedzi(Map<Integer, List<Integer>> odpowiedzi) { this.odpowiedzi = odpowiedzi; }
     public LocalDateTime getStartDate() { return startDate; }
     public LocalDateTime getEndDate() { return endDate; }
-
-    public void aktualizujOdpowiedzi(Map<Integer, List<Integer>> noweOdpowiedzi) {
-        this.odpowiedzi.putAll(noweOdpowiedzi);
-    }
 
     public void zakonczAnkiete() {
         this.czyZakonczona = true;
         this.endDate = LocalDateTime.now();
     }
-
     public boolean czyZakonczona() {
         return  czyZakonczona;
     }

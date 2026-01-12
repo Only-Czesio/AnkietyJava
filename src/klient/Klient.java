@@ -10,36 +10,19 @@ import java.net.Socket;
 public class Klient extends JFrame {
     private static final String HOST = "localhost";
     private static final int PORT = 6000;
-
     private Socket socket;
     private ObjectOutputStream out;
     private ObjectInputStream in;
-
     private JPanel mainPanel;
     private CardLayout cardLayout;
-
     private JTextField loginField;
     private JPasswordField passField;
     private Uzytkownik zalogowanyUser;
 
-    private DefaultTableModel tableModel;
-    private JTable usersTable;
-
-    public Klient(String host, int port) {
-        try {
-            socket = new Socket(host, port);
-            out = new ObjectOutputStream(socket.getOutputStream());
-            out.flush();
-            in = new ObjectInputStream(socket.getInputStream());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
     public Klient() {
         super("Ankiety ONLINE");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setSize(800, 600);
+        setSize(1200, 1000);
         setLocationRelativeTo(null);
 
         if (!polacz()) {
@@ -72,7 +55,6 @@ public class Klient extends JFrame {
     }
 
     // --- BUDOWANIE WIDOKÓW ---
-
     private JPanel budujPanelLogowania() {
         JPanel p = new JPanel(new GridBagLayout());
         GridBagConstraints c = new GridBagConstraints();
@@ -98,24 +80,9 @@ public class Klient extends JFrame {
         return p;
     }
 
-    public boolean zaloguj(String login, String haslo) {
-        Komunikat req = new Komunikat(TypKomunikatu.LOGIN);
-        req.setUzytkownik(new Uzytkownik(login, haslo, null));
-
-        Komunikat resp = wyslij(req);
-
-        if (resp != null && resp.getTyp() == TypKomunikatu.ODPOWIEDZ_OK) {
-            // TUTAJ przypisujemy użytkownika zwróconego przez serwer
-            this.zalogowanyUser = resp.getUzytkownik();
-            return true;
-        }
-        return false;
-    }
-
     public void wyloguj() {
         loginField.setText("");
         passField.setText("");
-        // Wracamy do ekranu logowania
         cardLayout.show(mainPanel, "LOGIN");
     }
 
@@ -154,40 +121,6 @@ public class Klient extends JFrame {
         JOptionPane.showMessageDialog(this, resp.wiadomosc);
         loginField.setText("");
         passField.setText("");
-    }
-
-    private void akcjaEdycja() {
-        int row = usersTable.getSelectedRow();
-        if(row == -1) {
-            JOptionPane.showMessageDialog(this, "Zaznacz użytkownika!");
-            return;
-        }
-
-        String login = (String) tableModel.getValueAt(row, 0);
-        String stareHaslo = (String) tableModel.getValueAt(row, 1);
-        boolean czyAdmin = tableModel.getValueAt(row, 2).equals(RodzajKonta.ADMIN);
-
-        JTextField passEdit = new JTextField(stareHaslo);
-        JCheckBox adminCheck = new JCheckBox("Administrator", czyAdmin);
-        Object[] msg = {"Nowe hasło:", passEdit, adminCheck};
-
-        int result = JOptionPane.showConfirmDialog(this, msg, "Edycja " + login, JOptionPane.OK_CANCEL_OPTION);
-        if (result == JOptionPane.OK_OPTION) {
-            Komunikat req = new Komunikat(TypKomunikatu.EDYTUJ_UZYTKOWNIKA);
-            req.uzytkownik = new Uzytkownik(login, passEdit.getText(), czyAdmin ? RodzajKonta.ADMIN : RodzajKonta.UZYTKOWNIK);
-            wyslij(req);
-            odswiezListeUzytkownikow();
-        }
-    }
-
-    private void odswiezListeUzytkownikow() {
-        Komunikat resp = wyslij(new Komunikat(TypKomunikatu.POBIERZ_UZYTKOWNIKOW));
-        if (resp.listaUzytkownikow != null) {
-            tableModel.setRowCount(0);
-            for (Uzytkownik u : resp.listaUzytkownikow) {
-                tableModel.addRow(new Object[]{u.login, u.haslo, u.rodzajKonta});
-            }
-        }
     }
 
     public Komunikat wyslij(Komunikat k) {

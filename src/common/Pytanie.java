@@ -6,9 +6,7 @@ import java.util.List;
 public class Pytanie implements Serializable {
     private String trescPytania;
     private List<String> opcjeOdpowiedzi;
-    private boolean wielokrotnyWybor; // true = JCheckBox, false = JRadioButton
-
-
+    private boolean wielokrotnyWybor;
 
     public Pytanie(String tresc, List<String> opcje, boolean wielokrotnyWybor) {
         this.trescPytania = tresc;

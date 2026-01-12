@@ -3,6 +3,7 @@ package klient.widoki;
 import common.*;
 import javax.swing.*;
 import java.awt.*;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.List;
 
@@ -13,6 +14,7 @@ public class KreatorAnkietyDialog extends JDialog {
     private List<Pytanie> listaPytan = new ArrayList<>();
     private boolean zatwierdzono = false;
     private String idEdytowanego = null;
+    private SzablonAnkiety szablonDoEdycji;
 
     public KreatorAnkietyDialog(Frame owner) {
         super(owner, "Nowy Szablon Ankiety", true);
@@ -27,11 +29,35 @@ public class KreatorAnkietyDialog extends JDialog {
         center.add(new JScrollPane(pytaniaList), BorderLayout.CENTER);
 
         JButton btnDodajPytanie = new JButton("Dodaj pytanie");
+        JButton btnUsunPytanie = new JButton("Usuń zaznaczone pytanie");
         btnDodajPytanie.addActionListener(e -> dodajPytanieDialog());
-        center.add(btnDodajPytanie, BorderLayout.SOUTH);
+        btnUsunPytanie.addActionListener(e -> {
+            int idx = pytaniaList.getSelectedIndex();
+            if (idx == -1) {
+                JOptionPane.showMessageDialog(this, "Zaznacz pytanie do usunięcia");
+                return;
+            }
+
+            int confirm = JOptionPane.showConfirmDialog(
+                    this,
+                    "Czy na pewno chcesz usunąć to pytanie?",
+                    "Potwierdzenie usunięcia",
+                    JOptionPane.YES_NO_OPTION
+            );
+
+            if (confirm == JOptionPane.YES_OPTION) {
+                pytaniaModel.remove(idx);
+                listaPytan.remove(idx);
+            }
+        });
+
+        JPanel panelPrzyciski = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        panelPrzyciski.add(btnDodajPytanie);
+        panelPrzyciski.add(btnUsunPytanie);
+
+        center.add(panelPrzyciski, BorderLayout.SOUTH);
 
         JPanel bottom = getJPanel();
-
         add(top, BorderLayout.NORTH);
         add(center, BorderLayout.CENTER);
         add(bottom, BorderLayout.SOUTH);
@@ -39,22 +65,28 @@ public class KreatorAnkietyDialog extends JDialog {
         setLocationRelativeTo(owner);
     }
 
+
+
     public KreatorAnkietyDialog(Frame owner, SzablonAnkiety szablonDoEdycji) {
-        this(owner); // Wywołuje główny konstruktor budujący GUI
+        this(owner);
         setTitle("Edycja Szablonu: " + szablonDoEdycji.getTytul());
 
+        this.szablonDoEdycji = szablonDoEdycji;
+
         tytulField.setText(szablonDoEdycji.getTytul());
+        listaPytan.clear();
         listaPytan.addAll(szablonDoEdycji.getPytania());
 
+        pytaniaModel.clear();
         for (Pytanie p : listaPytan) {
-            String typStr = p.czyWielokrotnyWybor() ? "[Wielo]" : "[Jedno]";
-            pytaniaModel.addElement(typStr + " " + p.getTrescPytania() + " (" + p.getOpcjeOdpowiedzi().size() + " odp)");
+            String typ = p.czyWielokrotnyWybor() ? "[Wielo]" : "[Jedno]";
+            pytaniaModel.addElement(
+                    typ + " " + p.getTrescPytania() + " (" + p.getOpcjeOdpowiedzi().size() + " odp)"
+            );
         }
 
         this.idEdytowanego = szablonDoEdycji.getId();
     }
-
-
 
     private JPanel getJPanel() {
         JPanel bottom = new JPanel();
@@ -112,7 +144,22 @@ public class KreatorAnkietyDialog extends JDialog {
 
     public SzablonAnkiety getSzablon() {
         String id = (idEdytowanego != null) ? idEdytowanego : UUID.randomUUID().toString();
-        SzablonAnkiety s = new SzablonAnkiety(id, tytulField.getText());
+        SzablonAnkiety s;
+
+        if (idEdytowanego != null) {
+            s = new SzablonAnkiety(
+                    idEdytowanego,
+                    tytulField.getText(),
+                    szablonDoEdycji.getDataUtworzenia(),
+                    LocalDateTime.now()
+            );
+        } else {
+            s = new SzablonAnkiety(
+                    UUID.randomUUID().toString(),
+                    tytulField.getText()
+            );
+        }
+
         for (Pytanie p : listaPytan) s.dodajPytanie(p);
         return s;
     }

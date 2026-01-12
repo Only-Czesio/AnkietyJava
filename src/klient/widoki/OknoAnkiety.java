@@ -1,91 +1,173 @@
 package klient.widoki;
 
 import common.*;
-import klient.*;
+import klient.Klient;
 
 import javax.swing.*;
-import java.util.HashMap;
+import java.awt.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-
 
 public class OknoAnkiety extends JDialog {
-    private Map<Integer, List<Integer>> wybraneOdpowiedzi = new HashMap<>();
-    private final Ankieta aktualnaAnkieta;
 
-    public OknoAnkiety(SzablonAnkiety szablon, Klient klient) {
-        setTitle("Wypełnianie: " + szablon.getTytul());
-        setLayout(new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
+    private final Ankieta ankietaWTrakcie;
+    private final SzablonAnkiety szablon;
+    private final Klient klient;
 
-        Komunikat reqSzkic = new Komunikat(TypKomunikatu.POBIERZ_MOJE_ANKIETY); // Serwer odfiltruje po loginie i ID szablonu
-        reqSzkic.setWiadomosc(szablon.getId());
-        Komunikat respSzkic = klient.wyslij(reqSzkic);
+    private final Map<Integer, List<AbstractButton>> mapaKontrolek = new HashMap<>();
 
-        if (respSzkic != null && respSzkic.getAnkieta() != null) {
-            this.aktualnaAnkieta = respSzkic.getAnkieta();
-            this.wybraneOdpowiedzi = aktualnaAnkieta.getOdpowiedzi();
-        } else {
-            this.aktualnaAnkieta = new Ankieta(szablon.getId(), klient.getZalogowanyUser().getLogin(), wybraneOdpowiedzi);
+    public OknoAnkiety(SzablonAnkiety szablon, Klient klient, Ankieta ankieta) {
+        super((Frame) null, "Ankieta: " + szablon.getTytul(), true);
+        this.szablon = szablon;
+        this.klient = klient;
+        this.ankietaWTrakcie = ankieta;
+
+        JLabel info = new JLabel(
+                "Rozpoczęcie: " + format(ankietaWTrakcie != null
+                        ? ankietaWTrakcie.getStartDate()
+                        : LocalDateTime.now())
+        );
+        info.setBorder(BorderFactory.createEmptyBorder(5,10,5,10));
+        add(info, BorderLayout.NORTH);
+
+
+        setLayout(new BorderLayout());
+        add(budujPanelPytan(), BorderLayout.CENTER);
+        add(budujPanelPrzyciskow(), BorderLayout.SOUTH);
+
+        setSize(600, 500);
+        setLocationRelativeTo(null);
+
+        if (ankietaWTrakcie != null) {
+            wypelnijZapisaneOdpowiedzi(ankietaWTrakcie.getOdpowiedzi());
         }
+    }
 
-        for (int i = 0; i < szablon.getPytania().size(); i++) {
-            Pytanie p = szablon.getPytania().get(i);
-            add(new JLabel(p.getTrescPytania()));
-            int nrPytania = i;
+    private String format(LocalDateTime dt) {
+        return dt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+    }
 
-            List<Integer> juzZaznaczone = wybraneOdpowiedzi.getOrDefault(nrPytania, new java.util.ArrayList<>());
+    private void wypelnijZapisaneOdpowiedzi(Map<Integer, List<Integer>> odp) {
+        for (var e : odp.entrySet()) {
+            List<AbstractButton> btns = mapaKontrolek.get(e.getKey());
+            for (int i : e.getValue()) {
+                btns.get(i).setSelected(true);
+            }
+        }
+    }
+
+
+    private JScrollPane budujPanelPytan() {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+
+        int index = 0;
+        for (Pytanie p : szablon.getPytania()) {
+            JPanel pytaniePanel = new JPanel();
+            pytaniePanel.setLayout(new BoxLayout(pytaniePanel, BoxLayout.Y_AXIS));
+            pytaniePanel.setBorder(BorderFactory.createTitledBorder(p.getTrescPytania()));
+
+            pytaniePanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+            pytaniePanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
+
+            List<AbstractButton> kontrolki = new ArrayList<>();
 
             if (p.czyWielokrotnyWybor()) {
-                for (int j = 0; j < p.getOpcjeOdpowiedzi().size(); j++) {
-                    int nrOpcji = j;
-                    JCheckBox cb = new JCheckBox(p.getOpcjeOdpowiedzi().get(j));
-
-                    if (juzZaznaczone.contains(nrOpcji)) cb.setSelected(true);
-
-                    cb.addActionListener(e -> {
-                        List<Integer> lista = wybraneOdpowiedzi.computeIfAbsent(nrPytania, k -> new java.util.ArrayList<>());
-                        if (cb.isSelected()) {
-                            if (!lista.contains(nrOpcji)) lista.add(nrOpcji);
-                        } else {
-                            lista.remove(Integer.valueOf(nrOpcji));
-                        }
-                        wyslijSzkic(klient);
-                    });
-                    add(cb);
+                for (String opcja : p.getOpcjeOdpowiedzi()) {
+                    JCheckBox cb = new JCheckBox(opcja);
+                    kontrolki.add(cb);
+                    pytaniePanel.add(cb);
                 }
             } else {
-                ButtonGroup grupa = new ButtonGroup();
-                for (int j = 0; j < p.getOpcjeOdpowiedzi().size(); j++) {
-                    int nrOpcji = j;
-                    JRadioButton rb = new JRadioButton(p.getOpcjeOdpowiedzi().get(j));
-
-                    if (juzZaznaczone.contains(nrOpcji)) rb.setSelected(true);
-
-                    rb.addActionListener(e -> {
-                        wybraneOdpowiedzi.put(nrPytania, java.util.Collections.singletonList(nrOpcji));
-                        wyslijSzkic(klient);
-                    });
-                    grupa.add(rb);
-                    add(rb);
+                ButtonGroup bg = new ButtonGroup();
+                for (String opcja : p.getOpcjeOdpowiedzi()) {
+                    JRadioButton rb = new JRadioButton(opcja);
+                    bg.add(rb);
+                    kontrolki.add(rb);
+                    pytaniePanel.add(rb);
                 }
+            }
+
+            mapaKontrolek.put(index++, kontrolki);
+            panel.add(pytaniePanel);
+        }
+
+        return new JScrollPane(panel);
+    }
+
+    private JPanel budujPanelPrzyciskow() {
+        JPanel panel = new JPanel();
+
+        JButton btnZapisz = new JButton("Zapisz");
+        JButton btnZakoncz = new JButton("Zakończ");
+
+        btnZapisz.addActionListener(e -> zapisz(false));
+        btnZakoncz.addActionListener(e -> zapisz(true));
+
+        panel.add(btnZapisz);
+        panel.add(btnZakoncz);
+        return panel;
+    }
+
+    private void zapisz(boolean zakoncz) {
+        Map<Integer, List<Integer>> odpowiedzi = new HashMap<>();
+
+        for (Map.Entry<Integer, List<AbstractButton>> entry : mapaKontrolek.entrySet()) {
+            List<Integer> zaznaczone = new ArrayList<>();
+            List<AbstractButton> btns = entry.getValue();
+
+            for (int i = 0; i < btns.size(); i++) {
+                if (btns.get(i).isSelected()) {
+                    zaznaczone.add(i);
+                }
+            }
+
+            if (!zaznaczone.isEmpty()) {
+                odpowiedzi.put(entry.getKey(), zaznaczone);
             }
         }
 
-        JButton btnZakoncz = new JButton("Zakończ i wyślij");
-        btnZakoncz.addActionListener(e -> {
-            aktualnaAnkieta.zakonczAnkiete();
-            Komunikat req = new Komunikat(TypKomunikatu.ZAPISZ_ANKIETE, "Zakończono");
-            req.setAnkieta(aktualnaAnkieta);
-            klient.wyslij(req);
-            dispose();
-        });
-        add(btnZakoncz);
-        pack();
+        // ✅ UŻYWAMY ISTNIEJĄCEJ ANKIETY
+        Ankieta ankieta = ankietaWTrakcie != null
+                ? ankietaWTrakcie
+                : new Ankieta(
+                szablon.getId(),
+                klient.getZalogowanyUser().getLogin(),
+                new HashMap<>()
+        );
+
+        ankieta.setOdpowiedzi(odpowiedzi);
+
+        if (zakoncz) {
+            int liczbaPytan = szablon.getPytania().size();
+
+            if (odpowiedzi.size() < liczbaPytan) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Aby zakończyć ankietę, musisz odpowiedzieć na wszystkie pytania.",
+                        "Niekompletna ankieta",
+                        JOptionPane.WARNING_MESSAGE
+                );
+                return;
+            }
+
+            ankieta.zakonczAnkiete();
+        }
+
+        Komunikat req = new Komunikat(TypKomunikatu.ZAPISZ_ANKIETE);
+        req.setAnkieta(ankieta);
+        req.setWiadomosc(zakoncz ? "ZAKOŃCZONA" : "W TRAKCIE");
+
+        klient.wyslij(req);
+
+        JOptionPane.showMessageDialog(
+                this,
+                zakoncz ? "Ankieta zakończona" : "Postęp zapisany"
+        );
+
+        if (zakoncz) dispose();
     }
 
-    private void wyslijSzkic(Klient klient) {
-        Komunikat req = new Komunikat(TypKomunikatu.ZAPISZ_ANKIETE, "Zapisano");
-        req.setAnkieta(aktualnaAnkieta);
-        klient.wyslij(req);
-    }
 }

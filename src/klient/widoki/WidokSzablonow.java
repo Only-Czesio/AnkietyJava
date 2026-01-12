@@ -3,12 +3,16 @@ package klient.widoki;
 import common.*;
 import klient.*;
 import javax.swing.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class WidokSzablonow extends WidokBazowy {
     private Klient klient;
 
     public WidokSzablonow(Klient klient) {
-        super(new String[]{"ID", "Tytuł", "Liczba pytań"});
+        super(new String[]{
+                "ID", "Tytuł", "Liczba pytań", "Utworzono", "Zmodyfikowano"
+        });
         this.klient = klient;
         odswiezDane();
     }
@@ -22,10 +26,21 @@ public class WidokSzablonow extends WidokBazowy {
                 modelTabeli.addRow(new Object[]{
                         s.getId(),
                         s.getTytul(),
-                        s.getPytania().size()
+                        s.getPytania().size(),
+                        s.getDataUtworzenia() != null
+                                ? format(s.getDataUtworzenia())
+                                : "—",
+                        s.getDataModyfikacji() != null
+                                ? format(s.getDataModyfikacji())
+                                : "—"
                 });
+
             }
         }
+    }
+
+    private String format(LocalDateTime dt) {
+        return dt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
     }
 
     @Override
@@ -51,7 +66,16 @@ public class WidokSzablonow extends WidokBazowy {
             return;
         }
 
-        int confirm = JOptionPane.showConfirmDialog(this, "Czy na pewno chcesz usunąć ankietę: " + id + "?");
+        String tytul = (String) modelTabeli.getValueAt(
+                tabela.getSelectedRow(), 1);
+
+        int confirm = JOptionPane.showConfirmDialog(
+                this,
+                "Czy na pewno chcesz usunąć ankietę: " + tytul + "?",
+                "Potwierdzenie",
+                JOptionPane.YES_NO_OPTION
+        );
+
         if (confirm == JOptionPane.YES_OPTION) {
             Komunikat req = new Komunikat(TypKomunikatu.USUN_SZABLON);
             req.setWiadomosc(id);
@@ -63,6 +87,29 @@ public class WidokSzablonow extends WidokBazowy {
 
     @Override
     protected void akcjaEdytuj() {
-        JOptionPane.showMessageDialog(this, "Edycja szablonów w przygotowaniu.");
+        String id = pobierzZaznaczoneId();
+        if (id == null) {
+            JOptionPane.showMessageDialog(this, "Zaznacz ankietę do edycji!");
+            return;
+        }
+
+        Komunikat req = new Komunikat(TypKomunikatu.POBIERZ_SZABLON);
+        req.setWiadomosc(id);
+        Komunikat resp = klient.wyslij(req);
+
+        if (resp != null && resp.getSzablon() != null) {
+            JFrame parent = (JFrame) SwingUtilities.getWindowAncestor(this);
+            KreatorAnkietyDialog dialog =
+                    new KreatorAnkietyDialog(parent, resp.getSzablon());
+            dialog.setVisible(true);
+
+            if (dialog.czyZatwierdzono()) {
+                Komunikat update = new Komunikat(TypKomunikatu.EDYTUJ_SZABLON);
+                update.setSzablon(dialog.getSzablon());
+                klient.wyslij(update);
+                odswiezDane();
+            }
+        }
     }
+
 }
